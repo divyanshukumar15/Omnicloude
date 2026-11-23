@@ -1,0 +1,49 @@
+# Official Acquisition Worker — Canonical Production Container Image
+# Build from repository root:
+#   docker build -f worker/Dockerfile.production -t omnihub-acquisition-worker:latest .
+
+FROM node:22-slim AS builder
+
+WORKDIR /app
+
+# Reproducible npm installation from committed package-lock.json (no wildcard lockfile assumptions)
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps --ignore-scripts
+
+# Copy TypeScript config, shared backend modules, and worker source
+COPY tsconfig.json ./
+COPY src/backend ./src/backend
+COPY src/worker ./src/worker
+COPY worker/package.json worker/.env.example ./worker/
+
+# Build compiled worker production bundle at /app/dist/worker/server.js and prune devDependencies
+RUN npm run worker:build && npm prune --omit=dev --legacy-peer-deps && npm cache clean --force
+
+FROM node:22-slim AS runtime
+
+WORKDIR /app
+
+COPY --from=builder --chown=node:node /app/package.json ./package.json
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/dist/worker/server.js /app/dist/worker/server.js
+COPY --from=builder --chown=node:node /app/worker/package.json ./worker/package.json
+
+USER node
+
+ENV NODE_ENV=production \
+    WORKER_EXECUTION_ENVIRONMENT=PRODUCTION_REMOTE \
+    WORKER_HOST=0.0.0.0 \
+    WORKER_PORT=8080 \
+    WORKER_REQUEST_TIMEOUT_MS=15000 \
+    WORKER_CONNECT_TIMEOUT_MS=15000 \
+    WORKER_MAX_RETRIES=2 \
+    WORKER_RETRY_BACKOFF_MS=500 \
+    WORKER_MAX_RESPONSE_MB=25 \
+    WORKER_MAX_CONCURRENCY=4
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:' + (process.env.WORKER_PORT || 8080) + '/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
+CMD ["node", "/app/dist/worker/server.js"]

@@ -1,0 +1,58 @@
+{
+  "name": "omnihub-govjobs-automation-ai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "OmniHub GovJobs Automation AI — Official Government Recruitment Discovery, Verification & Publishing Platform",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build",
+    "start": "node server.ts",
+    "preview": "vite preview",
+    "clean": "rm -rf dist server.js",
+    "lint": "tsc --noEmit",
+    "test": "tsx test/run-tests.ts",
+    "source:live-check": "tsx src/backend/ingestion/discovery/live-check.ts",
+    "verify:live": "tsx src/backend/ingestion/discovery/live-check.ts --e2e",
+    "verify:sources": "tsx src/backend/ingestion/discovery/live-check.ts",
+    "verify:sources:e2e": "tsx src/backend/ingestion/discovery/live-check.ts --e2e",
+    "verify:endpoints": "tsx src/backend/ingestion/discovery/endpoint-verifier.ts",
+    "worker:build": "esbuild src/worker/server.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=dist/worker/server.js",
+    "worker:start": "tsx src/worker/server.ts",
+    "worker:start:prod": "node dist/worker/server.js",
+    "worker:dev": "tsx src/worker/server.ts",
+    "worker:smoke:container": "tsx src/worker/container-smoke-test.ts",
+    "verify:remote-production": "tsx src/backend/ingestion/discovery/verify-remote-production.ts",
+    "test:worker": "node --import tsx --test test/worker/official-acquisition-worker.test.ts",
+    "scheduler:start": "tsx src/backend/scheduler/runner.ts",
+    "verify:scheduler-runtime": "tsx src/backend/scheduler/verify-runtime.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.4.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "vite": "^8.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.21.0",
+    "typescript": "^7.0.2",
+    "@types/express": "^4.17.21"
+  }
+}

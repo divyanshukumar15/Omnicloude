@@ -1,0 +1,17 @@
+{
+  "name": "omnihub-official-acquisition-worker",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone Official Government Source Acquisition Worker for OmniHub GovJobs Automation AI",
+  "main": "../dist/worker/server.js",
+  "scripts": {
+    "start": "node ../dist/worker/server.js",
+    "start:dev": "tsx ../src/worker/server.ts",
+    "worker:start": "node ../dist/worker/server.js",
+    "healthcheck": "node -e \"fetch('http://127.0.0.1:' + (process.env.WORKER_PORT || 8080) + '/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
